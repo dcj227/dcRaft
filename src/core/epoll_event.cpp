@@ -63,7 +63,11 @@ int EpollEvent::DelEvent(int fd) {
     if (it == fd_eh_.end()) {
         return 0;
     } else {
-        return epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, &it->second.ee); 
+        int ret = epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, &it->second.ee); 
+        if (ret == 0) {
+            fd_eh_.erase(fd);
+        }
+        return ret;
     }
 }
 
