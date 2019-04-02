@@ -1,5 +1,6 @@
 #include "socket_event.h"
 
+#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -23,6 +24,7 @@ int SocketEvent::Initialize() {
     if (epoll_event_.Initialize() != 0) {
         return -1;
     }
+    return 0;
 }
 
 void SocketEvent::OnRead(int fd) {
@@ -74,7 +76,7 @@ void SocketEvent::OnWrite(int fd) {
         if (count < 0) {
             fprintf(stderr, "SocketEvent, OnWrite send error, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
             // TODO 
-        } else if (count < sendBuf.size()) {
+        } else if (static_cast<unsigned int>(count) < sendBuf.size()) {
             std::string leftBuf(sendBuf, count, sendBuf.size() - count);
             sendBuf.swap(leftBuf);
         } else {
@@ -162,7 +164,7 @@ int SocketEvent::ModSocketEvent(int fd, uint32_t events) {
 int SocketEvent::DelSocket(int fd) {
     int ret = epoll_event_.DelEvent(fd);
     if (ret != 0) {
-        fprintf(stderr, "SocketEvent, DelSocket fail, fd:%d, errno:%d, error\n", fd, errno, strerror(errno));
+        fprintf(stderr, "SocketEvent, DelSocket fail, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
     }
 
     fd_si_.erase(fd);
