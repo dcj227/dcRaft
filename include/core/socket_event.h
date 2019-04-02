@@ -12,7 +12,6 @@
 
 namespace dc {
 
-
 enum SOCKET_EVENTS {
     SOCKET_READ = 0x001,
     SOCKET_WRITE = 0x004,

@@ -13,6 +13,10 @@ SocketEvent::SocketEvent(TCP_UDP type/* = SOCKET_TCP*/, bool isEPOLLET/* = true*
 }
 
 SocketEvent::~SocketEvent() {
+    std::map<int, SocketInfo>::iterator it;
+    for (it = fd_si_.begin(); it != fd_si_.end(); it++) {
+        DelSocket(it->second.fd);
+    }
 }
 
 int SocketEvent::Initialize() {
@@ -162,6 +166,8 @@ int SocketEvent::DelSocket(int fd) {
     }
 
     fd_si_.erase(fd);
+
+    close(fd);
 
     return 0;
 }
