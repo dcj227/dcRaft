@@ -15,6 +15,11 @@ EpollEvent::EpollEvent(bool isEPOLLET)
 }
 
 EpollEvent::~EpollEvent() {
+    if (events_) {
+        delete [] events_;
+        events_ = NULL;
+    }
+
     if (epoll_fd_ != -1) {
         close(epoll_fd_);
     }
@@ -28,6 +33,8 @@ int EpollEvent::Initialize() {
     }
 
     events_ = new epoll_event[EVENT_SIZE]; 
+
+    return 0;
 }
 
 int EpollEvent::AddEvent(int fd, EventHandler* efd, uint32_t events) {
@@ -54,6 +61,16 @@ int EpollEvent::ModEvent(int fd, uint32_t events) {
     }
 
     it->second.ee.events = events;
+
+    return  epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &it->second.ee); 
+}
+
+int EpollEvent::RemodEvent(int fd) {
+    std::map<int, EH>::iterator it = fd_eh_.find(fd);
+    if (it == fd_eh_.end()) {
+        fprintf(stderr, "fd not in epoll, can not mod, fd: %d\n", fd);
+        return -1;
+    }
 
     return  epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &it->second.ee); 
 }
@@ -105,6 +122,8 @@ int EpollEvent::Wait(int timeout) {
             }
         }
     }
+
+    return 0;
 }
 
 }  // namespace dc

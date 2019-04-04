@@ -25,6 +25,7 @@ public:
 
     int AddEvent(int fd, EventHandler* efd, uint32_t events);
     int ModEvent(int fd, uint32_t events);
+    int RemodEvent(int fd);
     int DelEvent(int fd);
 
     int Wait(int timeout);
