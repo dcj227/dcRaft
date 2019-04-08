@@ -11,9 +11,9 @@ namespace dc {
 
 class EventHandler {
 public:
-    virtual void OnRead(int fd) = 0;
-    virtual void OnWrite(int fd) = 0;
-    virtual void OnError(int fd, int err, std::string& error) = 0;
+    virtual void OnRead(int fd, uint32_t events) = 0;
+    virtual void OnWrite(int fd, uint32_t events) = 0;
+    virtual void OnError(int fd, uint32_t events, int err, std::string& error) = 0;
 };
 
 class EpollEvent {

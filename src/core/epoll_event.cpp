@@ -100,25 +100,25 @@ int EpollEvent::Wait(int timeout) {
             if (it != fd_eh_.end() && it->second.efd) {
                 //int err = events_[i].events & EPOLLERR ? EPOLLERR : (events_[i].events & EPOLLHUP)
                 std::string error = strerror(errno);
-                it->second.efd->OnError(it->second.ee.data.fd, errno, error);
+                it->second.efd->OnError(it->second.ee.data.fd, events_[i].events, errno, error);
             }
         }
 
         if ((events_[i].events & (EPOLLERR|EPOLLHUP)) 
             && (events_[i].events & (EPOLLIN|EPOLLOUT)) == 0) {
             // since nginx do this way
-            events_[i].events |= EPOLLIN|EPOLLOUT;
+            events_[i].events |= EPOLLIN | EPOLLOUT;
         }
 
         if (events_[i].events & EPOLLIN) {
             if (it != fd_eh_.end() && it->second.efd) {
-                it->second.efd->OnRead(it->second.ee.data.fd);
+                it->second.efd->OnRead(it->second.ee.data.fd, events_[i].events);
             }
         }
 
         if (events_[i].events & EPOLLOUT) {
             if (it != fd_eh_.end() && it->second.efd) {
-                it->second.efd->OnWrite(it->second.ee.data.fd);
+                it->second.efd->OnWrite(it->second.ee.data.fd, events_[i].events);
             }
         }
     }
