@@ -53,7 +53,7 @@ public:
         , se_(se) {
     }
 
-    ~SocketFdHandler() {
+    virtual ~SocketFdHandler() {
     }
 
     virtual void OnRecv(std::string& recveBuf) = 0;
