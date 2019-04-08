@@ -95,7 +95,12 @@ void SocketEvent::OnRead(int fd, uint32_t events) {
                 fprintf(stderr, "SocketEvent, OnRead recv error, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
             }
         } else if (count == 0) {
+            if (it->second.handler) {
+                it->second.handler->OnError(fd, -3, "connection interrupt when recv.");
+            }
+
             DelSocket(it->second.fd); 
+            fprintf(stderr, "SocketEvent, OnRead recv ret:0, close fd, fd:%d\n", fd);
         } else if (it->second.handler) {
             it->second.handler->OnRecv(recvBuf_);
         }
