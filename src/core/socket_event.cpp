@@ -80,16 +80,26 @@ void SocketEvent::OnRead(int fd, uint32_t events) {
     } else {
         int count = recv(fd, const_cast<char*>(recvBuf_.data()), recvBuf_.capacity(), MSG_PEEK);
         if (count < 0) {
-            fprintf(stderr, "SocketEvent, OnRead recv error, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
-            // TODO
+            if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+                int retry = 0;
+                do {
+                    count = recv(fd, const_cast<char*>(recvBuf_.data()), recvBuf_.capacity(), MSG_PEEK);
+                    retry++;
+                } while (retry < 2 && count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR));
+
+                if (count > 0) {
+                    it->second.handler->OnRecv(recvBuf_);
+                }
+
+            } else {
+                fprintf(stderr, "SocketEvent, OnRead recv error, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
+            }
         } else if (count == 0) {
             DelSocket(it->second.fd); 
         } else if (it->second.handler) {
             it->second.handler->OnRecv(recvBuf_);
         }
     }
-
-    return;
 }
 
 void SocketEvent::OnWrite(int fd, uint32_t events) {
@@ -124,8 +134,20 @@ void SocketEvent::OnWrite(int fd, uint32_t events) {
         std::string& sendBuf = handler->sendBuf();
         int count = send(fd, sendBuf.c_str(), sendBuf.size(), 0);
         if (count < 0) {
-            fprintf(stderr, "SocketEvent, OnWrite send error, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
-            // TODO 
+            if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+                int retry = 0;
+                do {
+                    count = send(fd, sendBuf.c_str(), sendBuf.size(), 0);
+                    retry++;
+                } while (retry < 2 && count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR));
+
+                if (count > 0) {
+                    it->second.handler->OnRecv(recvBuf_);
+                }
+
+            } else {
+                fprintf(stderr, "SocketEvent, OnWrite send error, fd:%d, errno:%d, error:%s\n", fd, errno, strerror(errno));
+            }
         } else if (static_cast<unsigned int>(count) < sendBuf.size()) {
             std::string leftBuf(sendBuf, count, sendBuf.size() - count);
             sendBuf.swap(leftBuf);
