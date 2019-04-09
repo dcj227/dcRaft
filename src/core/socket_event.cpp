@@ -96,7 +96,8 @@ void SocketEvent::OnRead(int fd, uint32_t events) {
             }
         } else if (count == 0) {
             if (it->second.handler) {
-                it->second.handler->OnError(fd, -3, "connection interrupt when recv.");
+                std::string error("connection interrupt when recv.");
+                it->second.handler->OnError(fd, -3, error);
             }
 
             DelSocket(it->second.fd); 
